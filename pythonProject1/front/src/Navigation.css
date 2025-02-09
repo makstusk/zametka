@@ -1,0 +1,339 @@
+.navigation-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+}
+
+.navigation-sidebar {
+    max-width: 250px;
+    background-color: #f1f1f1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border-right: 1px solid #d9d9d9;
+    flex-shrink: 0;
+    min-width: 200px;
+    transition: width 0.2s ease;
+}
+
+.resizer {
+    width: 10px;
+    cursor: col-resize;
+    background-color: transparent;
+    position: relative;
+    z-index: 2;
+}
+
+.resizer:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navigation-main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.navigation-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    overflow: hidden;
+}
+
+.navigation-avatar-small {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    border-radius: 0px;
+    object-fit: cover;
+}
+
+.navigation-username {
+    display: flex;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navigation-profile img {
+    display: flex;
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.navigation-profile p {
+    font-weight: bold;
+    color: #333;
+}
+
+.navigation-logout {
+    padding: 10px;
+    background-color: none;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.navigation-logout:hover {
+    background-color: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.navigation-logout:active {
+    background-color: none;
+}
+
+.navigation-header {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: none;
+}
+
+.navigation-workspaces {
+    list-style: none;
+    padding: 0;
+}
+
+.navigation-workspaces li {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.navigation-workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.navigation-workspace-name {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.navigation-add-button {
+    background-color: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.navigation-add-button:hover {
+    color: #555;
+}
+
+.navigation-add-text {
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 0px;
+    color: #333;
+}
+
+.context-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 100%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    display: none;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+}
+
+.context-menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.navigation-context-menu-wrapper:hover .context-menu {
+    display: flex;
+}
+
+.navigation-pages-list {
+    list-style: none;
+    padding-left: 15px;
+    margin-top: 5px;
+}
+
+.navigation-page-item {
+    margin-bottom: 5px;
+}
+
+.navigation-page-name {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    color: #000000;
+    transition: color 0.2s ease;
+}
+
+.navigation-page-name:hover {
+    color: #9c9c9c;
+}
+
+.workspace-save-button,
+.workspace-cancel-button {
+    margin-left: 5px;
+    padding: 3px 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.workspace-save-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.workspace-save-button:hover {
+    background-color: #218838;
+}
+
+.workspace-cancel-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.workspace-cancel-button:hover {
+    background-color: #c82333;
+}
+
+.navigation-create-workspace {
+    padding: 10px;
+    background-color: none;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.navigation-create-workspace:hover {
+    background-color: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.navigation-create-workspace:active {
+    background-color: none;
+}
+
+.navigation-resize-handle {
+    width: 5px;
+    background: #ccc;
+    cursor: ew-resize;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 10;
+}
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.navigation-avatar-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 35px;
+    height: 35px;
+    border-radius: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar-container:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.plus-icon {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.avatar-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 0px;
+    background-color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 0px;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

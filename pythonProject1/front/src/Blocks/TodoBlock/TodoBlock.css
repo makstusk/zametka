@@ -1,0 +1,56 @@
+.block-checkbox {
+  list-style: none;
+  padding: 0;
+}
+
+.block-checkbox li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.block-checkbox li::before {
+  content: '';
+}
+
+.block-checkbox input[type='checkbox'] {
+  margin-right: 10px;
+}
+
+.block-checkbox span {
+  outline: none;
+  border: none;
+}
+
+.block-checkbox span:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.block-checkbox span[contenteditable="true"] {
+  border: none;
+}
+
+.todo-title-text {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.todo-title-text:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.todo-title-input {
+  width: 100%;
+  font-size: 1em;
+  padding: 5px;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background-color: transparent;
+}

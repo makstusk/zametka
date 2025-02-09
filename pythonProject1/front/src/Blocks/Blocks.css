@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.block-container {
+    margin: 10px 0; 
+    padding: 3px; 
+    border-radius: 2px; 
+    border-left: 3px solid #141414;
+    transition: box-shadow 0.2s ease, transform 0.2s ease; 
+}
+
+.block-container:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.block-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 0px;
+    color: #333;
+}
+
+.block-title:focus {
+    outline: none;
+    border: none;
+}
+
+.block-content {
+    font-size: 1em;
+    line-height: 1.6;
+    color: #555;
+    white-space: pre-wrap;
+    padding-left: 22px;
+    margin: 5px 0px;
+}
+
+.block-text {
+    font-size: 1em;
+    line-height: 1.6;
+    color: #555;
+    white-space: pre-wrap;
+    padding-left: 0px;
+}
+
+.block-content:focus {
+    outline: none;
+    border: none;
+}
+
+.block-text:focus {
+    outline: none;
+    border: none;
+}
+
+.block-placeholder {
+    color: #aaa;
+    font-style: italic;
+}
+
+.block-button {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.block-button:hover {
+    background-color: rgba(141, 141, 141, 0.15);
+}
+
+.block-button:active {
+    background-color: rgba(39, 39, 39, 0.15);
+}
+
+.block-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.block-error {
+    color: red;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.editable-title-input {
+    flex: 1;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.editable-title-display {
+    cursor: pointer;
+    flex: 1;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.delete-page-button {
+    margin-left: 10px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 1em;
+}
+
+.delete-page-button:hover {
+    background-color: #c82333;
+}

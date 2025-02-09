@@ -1,0 +1,18 @@
+.submenu-title {
+    position: relative;
+    display: inline-block;
+  }
+  .submenu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    display: none;
+    min-width: 120px;
+  }
+  .submenu-title:hover .submenu {
+    display: block;
+  }
+
+  

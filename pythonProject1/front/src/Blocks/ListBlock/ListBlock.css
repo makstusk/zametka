@@ -1,0 +1,9 @@
+.block-content.editable-list {
+    list-style-type: disc; 
+    padding-left: 20px; 
+    margin: 0;
+  }
+  
+  .block-content.editable-list > li {
+    line-height: 1.3; 
+  }

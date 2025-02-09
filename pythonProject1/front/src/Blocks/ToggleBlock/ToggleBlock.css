@@ -1,0 +1,20 @@
+.toggle-header {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .block-content.editable-list {
+    list-style-type: disc; 
+    padding-left: 20px; 
+    margin: 0;
+  }
+  
+  .block-content.editable-list > li {
+    margin-bottom: 5px; 
+  }
+
+  .block-content.editable-list:focus {
+    outline: none; 
+    border: none;   
+  }
