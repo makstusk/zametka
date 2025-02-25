@@ -40,13 +40,15 @@ class Block(models.Model):
         ('toggle', 'Toggle'),
         ('todo', 'ToDo'),
     ]
-
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='blocks')
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     block_type = models.CharField(max_length=50, choices=PAGE_BLOCK_TYPES)
     order = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"{self.block_type} block in page {self.page.title}"
+        parent_str = f", parent={self.parent.id}" if self.parent else ""
+        return f"{self.block_type} block in page {self.page.title}{parent_str}"
+
 
 
 class TextBlock(models.Model):

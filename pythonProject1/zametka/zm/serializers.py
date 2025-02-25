@@ -4,10 +4,6 @@ from django.contrib.auth.models import User
 from .models import Profile, Workspace, Page, Block,ToggleBlock, ToDoBlock, CalendarBlock, TextBlock, ImageBlock, ListBlock, Database, DatabaseRecord
 logger = logging.getLogger(__name__)
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
 
 # Profile Serializer
 class UserSerializer(serializers.ModelSerializer):
@@ -96,6 +92,8 @@ class BlockSerializer(serializers.ModelSerializer):
     calendar_block = CalendarBlockSerializer(read_only=True)
     toggle_block = ToggleBlockSerializer(read_only=True)
     todo_block = ToDoBlockSerializer(read_only=True)
+    # Рекурсивное поле для вложенных блоков
+    children = serializers.SerializerMethodField()
 
     class Meta:
         model = Block
@@ -103,6 +101,7 @@ class BlockSerializer(serializers.ModelSerializer):
             'id',
             'block_type',
             'page',
+            'parent',
             'order',
             'text_block',
             'image_block',
@@ -110,6 +109,7 @@ class BlockSerializer(serializers.ModelSerializer):
             'calendar_block',
             'toggle_block',
             'todo_block',
+            'children',
         ]
         read_only_fields = [
             'order',
@@ -119,9 +119,14 @@ class BlockSerializer(serializers.ModelSerializer):
             'calendar_block',
             'block_type',
             'page',
+            'parent',
             'toggle_block',
             'todo_block',
+            'children',
         ]
+    def get_children(self, instance):
+        children = instance.children.all().order_by('order')
+        return BlockSerializer(children, many=True, context=self.context).data
 
     def update(self, instance, validated_data):
 
@@ -135,6 +140,13 @@ class BlockSerializer(serializers.ModelSerializer):
             if content is not None:
                 text_block.content = content
                 text_block.save()
+
+        elif block_type == 'list':
+            list_block = instance.list_block
+            items = self.initial_data.get('items')
+            if items is not None:
+                list_block.items = items
+                list_block.save()
 
 
         elif block_type == 'image':

@@ -92,27 +92,59 @@ const PageDetails = () => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
   };
 
-  const handleCreateBlock = (type) => {
+  const updateNestedBlock = (blocksArray, parentId, newBlock) => {
+    return blocksArray.map((block) => {
+      if (block.id === parentId) {
+        return {
+          ...block,
+          children: block.children ? [...block.children, newBlock] : [newBlock],
+        };
+      } else if (block.children && block.children.length > 0) {
+        return {
+          ...block,
+          children: updateNestedBlock(block.children, parentId, newBlock),
+        };
+      }
+      return block;
+    });
+  };
+  
+  const updateNestedBlockData = (blocksArray, updatedBlock) => {
+    return blocksArray.map((block) => {
+      if (block.id === updatedBlock.id) {
+        return { ...updatedBlock };
+      }
+      if (block.children && block.children.length > 0) {
+        return { ...block, children: updateNestedBlockData(block.children, updatedBlock) };
+      }
+      return block;
+    });
+  };
+
+  const handleCreateBlock = (type, parentId = null) => {
     if (type === 'image') {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
       input.onchange = async (e) => {
         const file = e.target.files[0];
-        if (!file) {
-          return;
-        }
+        if (!file) return;
         try {
           const formData = new FormData();
           formData.append('page', pageId);
+          if (parentId) formData.append('parent', parentId);
           formData.append('block_type', 'image');
           formData.append('image', file);
-  
+    
           const response = await axiosInstance.post(`/blocks/`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-  
-          setBlocks((prev) => [...prev, response.data]);
+    
+          if (parentId) {
+            setBlocks((prev) => updateNestedBlock(prev, parentId, response.data));
+          } else {
+            setBlocks((prev) => [...prev, response.data]);
+          }
           closeContextMenu();
         } catch (err) {
           console.error('Ошибка создания блока:', err);
@@ -122,13 +154,14 @@ const PageDetails = () => {
       input.click();
       return;
     }
-  
+    
     (async () => {
       try {
         const formData = new FormData();
         formData.append('page', pageId);
+        if (parentId) formData.append('parent', parentId);
         formData.append('block_type', type);
-  
+    
         if (type === 'text') {
           formData.append('content', '');
         } else if (type === 'list') {
@@ -146,12 +179,16 @@ const PageDetails = () => {
           formData.append('title', title);
           formData.append('data', initialItems);
         }
-  
+    
         const response = await axiosInstance.post(`/blocks/`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-  
-        setBlocks((prev) => [...prev, response.data]);
+    
+        if (parentId) {
+          setBlocks((prev) => updateNestedBlock(prev, parentId, response.data));
+        } else {
+          setBlocks((prev) => [...prev, response.data]);
+        }
         closeContextMenu();
       } catch (err) {
         console.error('Ошибка создания блока:', err);
@@ -160,12 +197,29 @@ const PageDetails = () => {
     })();
   };
   
+  const removeNestedBlock = (blocksArray, blockId) => {
+    return blocksArray.reduce((acc, block) => {
+      // Если текущий блок имеет тот же id, его просто не добавляем
+      if (block.id === blockId) {
+        return acc;
+      }
+      // Если у блока есть дочерние блоки, обновляем их, вызывая функцию рекурсивно
+      let updatedBlock = { ...block };
+      if (updatedBlock.children && updatedBlock.children.length > 0) {
+        updatedBlock.children = removeNestedBlock(updatedBlock.children, blockId);
+      }
+      acc.push(updatedBlock);
+      return acc;
+    }, []);
+  };
+  
   const handleDeleteBlock = async (blockId) => {
     try {
       await axiosInstance.delete(`/blocks/${blockId}/`, {
         params: { page: pageId },
       });
-      setBlocks(blocks.filter((b) => b.id !== blockId));
+      // Обновляем дерево блоков, удаляя блок с blockId
+      setBlocks((prevBlocks) => removeNestedBlock(prevBlocks, blockId));
       closeContextMenu();
     } catch (err) {
       console.error('Ошибка удаления блока:', err);
@@ -334,7 +388,7 @@ const PageDetails = () => {
   /////////////////List///////////////////
   ////////////////////////////////////////
 
-   const handleStartEditingList = (block) => {
+  const handleStartEditingList = (block) => {
     setEditingBlockId(block.id);
     try {
       const lines = block.list_block.items.split(/\r?\n/).join('\n');
@@ -344,35 +398,27 @@ const PageDetails = () => {
     }
   };
 
-    const handleBlurListBlock = async (e, block) => {
-    if (editingBlockId !== block.id) return; 
-  
-    const newText = e.currentTarget.innerText;  
-  
+  const handleBlurListBlock = async (e, block) => {
+    if (editingBlockId !== block.id) return;
+    
+    const newText = e.currentTarget.innerText;
+    
     try {
       const formData = new FormData();
       formData.append('items', newText);
-  
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+    
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
-  
-      setBlocks(
-        blocks.map((b) =>
-          b.id === block.id
-            ? {
-                ...b,
-                list_block: { ...b.list_block, items: newText },
-              }
-            : b
-        )
-      );
+      
+      // Обновляем дерево блоков рекурсивно
+      setBlocks((prev) => updateNestedBlockData(prev, response.data));
     } catch (err) {
-      console.error('Ошибка при сохранении списка:', err);
-      setError('Не удалось сохранить изменения списка.');
+      console.error('Ошибка сохранения списка:', err);
+      setError('Не удалось сохранить список.');
     }
-  
+    
     setEditingBlockId(null);
   };
   
@@ -408,42 +454,25 @@ const PageDetails = () => {
       setError('Заголовок не может быть пустым.');
       return;
     }
-  
     if (updatedTitle === block.toggle_block.title) {
       setEditingToggleTitleBlockId(null);
       return;
     }
-  
     try {
       const formData = new FormData();
       formData.append('title', updatedTitle);
   
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        params: { page: pageId },  
+        params: { page: pageId },
       });
-  
-      setBlocks((prevBlocks) =>
-        prevBlocks.map((b) =>
-          b.id === block.id
-            ? {
-                ...b,
-                toggle_block: {
-                  ...b.toggle_block,
-                  title: updatedTitle,
-                },
-              }
-            : b
-        )
-      );
-  
+      setBlocks((prev) => updateNestedBlockData(prev, response.data));
+      setEditingToggleTitleBlockId(null);
       setError('');
     } catch (err) {
       console.error('Ошибка обновления заголовка Toggle:', err);
       setError('Не удалось обновить заголовок.');
     }
-  
-    setEditingToggleTitleBlockId(null);
   };
   
   const handleEnterKeyToggleTitle = (e, block) => {
@@ -459,26 +488,14 @@ const PageDetails = () => {
       const formData = new FormData();
       formData.append('collapsed', newCollapsed.toString());
   
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
   
-      setBlocks(
-        blocks.map((b) =>
-          b.id === block.id
-            ? {
-                ...b,
-                toggle_block: {
-                  ...b.toggle_block,
-                  collapsed: newCollapsed,
-                },
-              }
-            : b
-        )
-      );
+      setBlocks((prev) => updateNestedBlockData(prev, response.data));
     } catch (err) {
-      console.error('Ошибка toggle:', err);
+      console.error('Ошибка переключения сворачивания Toggle:', err);
       setError('Не удалось переключить свёрнутый список.');
     }
   };
@@ -496,50 +513,33 @@ const PageDetails = () => {
 
   const handleBlurToggleItems = async (e, block) => {
     if (editingBlockId !== block.id) return;
-  
-    const htmlContent = e.currentTarget.innerHTML;
     
+    const htmlContent = e.currentTarget.innerHTML;
     const lines = htmlContent
-      .replace(/<br\s*\/?>/gi, '\n') 
-      .replace(/<\/?div[^>]*>/g, '') 
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/?div[^>]*>/g, '')
       .trim();
-  
-    const linesArray = lines
-      .split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  
+    
+    const linesArray = lines.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
     const newData = JSON.stringify(linesArray);
-  
+    
     try {
       const formData = new FormData();
       formData.append('data', newData);
-  
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+    
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
-  
-      setBlocks(prevBlocks =>
-        prevBlocks.map(b =>
-          b.id === block.id
-            ? {
-                ...b,
-                toggle_block: {
-                  ...b.toggle_block,
-                  data: newData,
-                },
-              }
-            : b
-        )
-      );
+      
+      // Обновляем дерево блоков рекурсивно
+      setBlocks((prev) => updateNestedBlockData(prev, response.data));
     } catch (err) {
-      console.error('Ошибка при сохранении Toggle:', err.response || err);
+      console.error('Ошибка сохранения Toggle:', err);
       setError('Не удалось сохранить Toggle.');
     }
-  
+    
     setEditingBlockId(null);
-    setEditingContent('');
   };  
 
   const handleKeyDownToggleItems = (e, block) => {
@@ -839,9 +839,10 @@ const PageDetails = () => {
   
 
   const renderBlockContent = (block) => {
+    let content;
     switch (block.block_type) {
       case 'text':
-        return (
+        content = (
           <TextBlock
             key={block.id}
             block={block}
@@ -852,12 +853,12 @@ const PageDetails = () => {
             error={error}
           />
         );
-  
+        break;
       case 'image':
-        return <ImageBlock key={block.id} block={block} />;
-  
+        content = <ImageBlock key={block.id} block={block} />;
+        break;
       case 'list':
-        return (
+        content = (
           <ListBlock
             key={block.id}
             block={block}
@@ -867,9 +868,9 @@ const PageDetails = () => {
             onKeyDownListBlock={handleKeyDownListBlock}
           />
         );
-  
+        break;
       case 'calendar':
-        return (
+        content = (
           <CalendarBlock
             key={block.id}
             block={block}
@@ -877,29 +878,29 @@ const PageDetails = () => {
             handleDeleteEvent={handleDeleteEvent}
           />
         );
-  
-        case 'toggle':
-          return (
-            <ToggleBlock
-              key={block.id}
-              block={block}
-              editingBlockId={editingBlockId}
-              handleToggleCollapsed={handleToggleCollapsed}
-              handleStartEditingToggle={handleStartEditingToggle}
-              handleBlurToggleItems={handleBlurToggleItems}
-              handleKeyDownToggleItems={handleKeyDownToggleItems}
-              editingToggleTitleBlockId={editingToggleTitleBlockId}
-              newToggleTitle={newToggleTitle}
-              handleStartEditingToggleTitle={handleStartEditingToggleTitle}
-              handleChangeToggleTitle={handleChangeToggleTitle}
-              handleBlurToggleTitle={handleBlurToggleTitle}
-              handleEnterKeyToggleTitle={handleEnterKeyToggleTitle}
-            />
-          );
-  
-        case 'todo':
-          return (
-            <TodoBlock
+        break;
+      case 'toggle':
+        content = (
+          <ToggleBlock
+            key={block.id}
+            block={block}
+            editingBlockId={editingBlockId}
+            handleToggleCollapsed={handleToggleCollapsed}
+            handleStartEditingToggle={handleStartEditingToggle}
+            handleBlurToggleItems={handleBlurToggleItems}
+            handleKeyDownToggleItems={handleKeyDownToggleItems}
+            editingToggleTitleBlockId={editingToggleTitleBlockId}
+            newToggleTitle={newToggleTitle}
+            handleStartEditingToggleTitle={handleStartEditingToggleTitle}
+            handleChangeToggleTitle={handleChangeToggleTitle}
+            handleBlurToggleTitle={handleBlurToggleTitle}
+            handleEnterKeyToggleTitle={handleEnterKeyToggleTitle}
+          />
+        );
+        break;
+      case 'todo':
+        content = (
+          <TodoBlock
             key={block.id}
             block={block}
             editingTodoBlockId={editingTodoBlockId}
@@ -917,12 +918,33 @@ const PageDetails = () => {
             error={error}
             handleDeleteTodoItem={handleDeleteTodoItem}
           />
-          );
-  
+        );
+        break;
       default:
-        return <p>Неизвестный тип блока</p>;
+        content = <p>Неизвестный тип блока</p>;
     }
+  
+    return (
+      <div className="block-content">
+        {content}
+        {block.children && block.children.length > 0 && (
+          <div className="nested-blocks">
+            {block.children.map((child) => (
+              <div
+                key={child.id}
+                className="block-container nested"
+                onContextMenu={(e) => handleContextMenuBlock(child.id, e)}
+              >
+                {renderBlockContent(child)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
+  
+  
 
   if (error) {
     return <p style={{ color: 'red' }}>{error}</p>;
@@ -933,27 +955,23 @@ const PageDetails = () => {
   }
 
   return (
-    <div
-      style={{ minHeight: '100vh' }}
-      onContextMenu={handleContextMenuPage}
-    >
+    <div style={{ minHeight: '100vh' }} onContextMenu={handleContextMenuPage}>
       <Title
         title={page.title}
         onSave={handleSavePageTitle}
         onDelete={handleDeletePage}
       />
-
+  
       {blocks.map((block) => (
         <div
           className="block-container"
           key={block.id}
-
           onContextMenu={(e) => handleContextMenuBlock(block.id, e)}
         >
           {renderBlockContent(block)}
         </div>
       ))}
-
+  
       {contextMenu.visible && (
         <div
           style={{
@@ -967,67 +985,116 @@ const PageDetails = () => {
           }}
           onMouseLeave={closeContextMenu}
         >
-          {}
-          {contextMenu.targetBlockId && (
-            <div
-              style={{ padding: '5px', cursor: 'pointer' }}
-              onClick={() => handleDeleteBlock(contextMenu.targetBlockId)}
-            >
-              Удалить блок
+          {contextMenu.targetBlockId ? (
+            <>
+              <div
+                style={{ padding: '5px', cursor: 'pointer' }}
+                onClick={() => handleDeleteBlock(contextMenu.targetBlockId)}
+              >
+                Удалить блок
+              </div>
+              <div className="submenu-title" style={{ padding: '5px', cursor: 'pointer' }}>
+                Добавить дочерний блок &raquo;
+                <div className="submenu">
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('text', contextMenu.targetBlockId)}
+                  >
+                    Текст
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('image', contextMenu.targetBlockId)}
+                  >
+                    Изображение
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('list', contextMenu.targetBlockId)}
+                  >
+                    Список
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('calendar', contextMenu.targetBlockId)}
+                  >
+                    Календарь
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('toggle', contextMenu.targetBlockId)}
+                  >
+                    Toggle
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    style={{ padding: '5px', cursor: 'pointer' }}
+                    onClick={() => handleCreateBlock('todo', contextMenu.targetBlockId)}
+                  >
+                    ToDo
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="submenu-title" style={{ padding: '5px', cursor: 'pointer' }}>
+              Создать блок &raquo;
+              <div className="submenu">
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('text')}
+                >
+                  Текст
+                </div>
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('image')}
+                >
+                  Изображение
+                </div>
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('list')}
+                >
+                  Список
+                </div>
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('calendar')}
+                >
+                  Календарь
+                </div>
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('toggle')}
+                >
+                  Toggle
+                </div>
+                <div
+                  className="context-menu-item"
+                  style={{ padding: '5px', cursor: 'pointer' }}
+                  onClick={() => handleCreateBlock('todo')}
+                >
+                  ToDo
+                </div>
+              </div>
             </div>
           )}
-
-          {}
-                    {}
-          <div className="submenu-title" style={{ padding: '5px', cursor: 'pointer' }}>
-            Создать блок &raquo;
-            <div className="submenu">
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('text')}
-              >
-                Текст
-              </div>
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('image')}
-              >
-                Изображение
-              </div>
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('list')}
-              >
-                Список
-              </div>
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('calendar')}
-              >
-                Календарь
-              </div>
-              {}
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('toggle')}
-              >
-                Toggle
-              </div>
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleCreateBlock('todo')}
-              >
-                ToDo
-              </div>
-            </div>
-          </div>
-
-
-          
         </div>
       )}
     </div>
   );
+  
 };
 
 export default PageDetails;

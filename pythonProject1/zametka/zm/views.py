@@ -76,159 +76,98 @@ class BlockViewSet(viewsets.ModelViewSet):
     serializer_class = BlockSerializer
 
     def get_queryset(self):
+        # При GET-запросе можно выбирать либо верхнеуровневые блоки по странице,
+        # либо дочерние блоки конкретного родителя.
         if self.request.method == 'GET':
             page_id = self.request.query_params.get('page')
-            if not page_id:
-                raise serializers.ValidationError("Параметр 'page' обязателен для получения блоков.")
-            return Block.objects.filter(page_id=page_id).order_by('order')
+            parent_id = self.request.query_params.get('parent')
+            if parent_id:
+                try:
+                    parent_block = Block.objects.get(id=parent_id)
+                except Block.DoesNotExist:
+                    raise serializers.ValidationError("Родительский блок не найден.")
+                return parent_block.children.all().order_by('order')
+            elif page_id:
+                return Block.objects.filter(page_id=page_id, parent__isnull=True).order_by('order')
+            else:
+                raise serializers.ValidationError("Необходимо указать параметр 'page' или 'parent'.")
         return Block.objects.all()
 
     def perform_create(self, serializer):
-        page_id = self.request.data.get('page')
-        block_type = self.request.data.get('block_type')
-        content = self.request.data.get('content')
+        data = self.request.data
+        page_id = data.get('page')
+        parent_id = data.get('parent')
+        block_type = data.get('block_type')
+        # Остальные поля для конкретных типов блоков
+        content = data.get('content')
         image = self.request.FILES.get('image')
-        items = self.request.data.get('items')
-        events = self.request.data.get('events')
-        collapsed_str = self.request.data.get('collapsed')
-        toggle_title = self.request.data.get('title')
-        toggle_data = self.request.data.get('data')
-        todo_title = self.request.data.get('title')
-        todo_data = self.request.data.get('data')
+        items = data.get('items')
+        events = data.get('events')
+        collapsed_str = data.get('collapsed')
+        toggle_title = data.get('title')
+        toggle_data = data.get('data')
+        todo_title = data.get('title')
+        todo_data = data.get('data')
 
-        if not page_id or not block_type:
-            raise serializers.ValidationError("Поля 'page' и 'block_type' обязательны.")
+        if not block_type:
+            raise serializers.ValidationError("Поле 'block_type' обязательно.")
 
-        try:
-            page = Page.objects.get(id=page_id)
-        except Page.DoesNotExist:
-            raise serializers.ValidationError("Страница с указанным ID не найдена.")
+        if parent_id:
+            # Если указан родительский блок, получаем его
+            try:
+                parent_block = Block.objects.get(id=parent_id)
+            except Block.DoesNotExist:
+                raise serializers.ValidationError("Родительский блок не найден.")
+            # Если передан page, проверяем согласованность
+            if page_id and int(page_id) != parent_block.page_id:
+                raise serializers.ValidationError("Родительский блок принадлежит другой странице.")
+            page = parent_block.page
+            last_order = Block.objects.filter(parent=parent_block).aggregate(models.Max('order'))['order__max'] or 0
+            block = serializer.save(page=page, order=last_order + 1, block_type=block_type, parent=parent_block)
+        else:
+            if not page_id:
+                raise serializers.ValidationError("Поле 'page' или 'parent' обязательно.")
+            try:
+                page = Page.objects.get(id=page_id)
+            except Page.DoesNotExist:
+                raise serializers.ValidationError("Страница с указанным ID не найдена.")
+            last_order = Block.objects.filter(page=page, parent__isnull=True).aggregate(models.Max('order'))['order__max'] or 0
+            block = serializer.save(page=page, order=last_order + 1, block_type=block_type)
 
-        last_order = Block.objects.filter(page=page).aggregate(models.Max('order'))['order__max'] or 0
-
-        # Сохраняем основной блок
-        block = serializer.save(page=page, order=last_order + 1, block_type=block_type)
-
+        # Создаём связанные сущности для конкретных типов блоков
         if block_type == 'text':
             if content is None:
                 content = ""
             TextBlock.objects.create(block=block, content=content)
-
         elif block_type == 'image':
             ImageBlock.objects.create(block=block, image=image)
-
         elif block_type == 'list':
             if items is None:
                 items = ""
             ListBlock.objects.create(block=block, items=items)
-
         elif block_type == 'calendar':
             if events is None:
                 events = "[]"
             CalendarBlock.objects.create(block=block, events=events)
-
-
         elif block_type == 'toggle':
-
             collapsed_val = False
-
             if collapsed_str and collapsed_str.lower() == 'true':
                 collapsed_val = True
-
             if toggle_title is None:
                 toggle_title = ""
-
             if toggle_data is None:
                 toggle_data = "[]"
-
-            ToggleBlock.objects.create(
-
-                block=block,
-
-                collapsed=collapsed_val,
-
-                title=toggle_title,
-
-                data=toggle_data
-
-            )
-
-
+            ToggleBlock.objects.create(block=block, collapsed=collapsed_val, title=toggle_title, data=toggle_data)
         elif block_type == 'todo':
-
             if todo_title is None:
                 todo_title = ""
-
             if todo_data is None:
                 todo_data = "[]"
-
-            ToDoBlock.objects.create(
-
-                block=block,
-
-                title=todo_title,
-
-                data=todo_data
-
-            )
-
+            ToDoBlock.objects.create(block=block, title=todo_title, data=todo_data)
         else:
             raise serializers.ValidationError(f"Неизвестный тип блока: {block_type}")
 
         return block
-
-    def perform_update(self, serializer):
-        block = self.get_object()
-        page_id = self.request.query_params.get('page')
-        if not page_id or block.page_id != int(page_id):
-            raise serializers.ValidationError("Блок не принадлежит указанной странице.")
-
-        if block.block_type == 'text':
-            content = self.request.data.get('content')
-            if content is not None:
-                block.text_block.content = content
-                block.text_block.save()
-
-        elif block.block_type == 'image':
-            image = self.request.FILES.get('image')
-            if image is not None:
-                block.image_block.image = image or "Def_image.png"
-                block.image_block.save()
-
-        elif block.block_type == 'list':
-            items = self.request.data.get('items')
-            if items is not None:
-                block.list_block.items = items
-                block.list_block.save()
-
-        elif block.block_type == 'calendar':
-            events = self.request.data.get('events')
-            if events is not None:
-                block.calendar_block.events = events
-                block.calendar_block.save()
-
-
-        elif block.block_type == 'toggle':
-            collapsed_str = self.request.data.get('collapsed')
-            title = self.request.data.get('title')
-            data = self.request.data.get('data')
-            if collapsed_str is not None:
-                block.toggle_block.collapsed = (collapsed_str.lower() == 'true')
-            if title is not None:  # ← Новое
-
-                block.toggle_block.title = title
-            if data is not None:  # ← Новое
-
-                block.toggle_block.data = data
-                block.toggle_block.save()
-
-        elif block.block_type == 'todo':
-            data = self.request.data.get('data')
-            if data is not None:
-                block.todo_block.data = data
-                block.todo_block.save()
-
-        serializer.save()
 
     def perform_destroy(self, instance):
         if instance.block_type == 'image':
