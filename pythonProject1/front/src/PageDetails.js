@@ -555,31 +555,30 @@ const PageDetails = () => {
 
   const handleCheckTodoItem = async (block, index) => {
     try {
-      const todoDataStr = block.todo_block.data;
-      const todoArray = JSON.parse(todoDataStr);
+      const todoArray = JSON.parse(block.todo_block.data || '[]');
+      // Переключаем состояние чекбокса
       todoArray[index].done = !todoArray[index].done;
-  
       const newData = JSON.stringify(todoArray);
+  
       const formData = new FormData();
       formData.append('data', newData);
   
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      // Отправляем обновление на сервер
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
   
-      setBlocks(
-        blocks.map((b) =>
-          b.id === block.id
-            ? { ...b, todo_block: { ...b.todo_block, data: newData } }
-            : b
-        )
+      // Обновляем блоки локально с новым состоянием чекбокса
+      setBlocks((prevBlocks) => 
+        updateNestedBlockData(prevBlocks, response.data)
       );
     } catch (err) {
-      console.error('Ошибка обновления todo:', err);
+      console.error('Ошибка обновления ToDo:', err);
       setError('Не удалось обновить пункт todo.');
     }
   };
+  
   
   const handleStartEditingTodoItem = (block, index) => {
     setEditingTodoBlockId(block.id);
@@ -594,7 +593,6 @@ const PageDetails = () => {
     }
   };
   
-
   const handleBlurTodoItem = async (e, block, index) => {
     if (editingTodoBlockId !== block.id || editingTodoIndex !== index || isDeleting || isEnterPressedRef.current) {
       console.log(`Blur skip id ${index}`);
@@ -638,7 +636,6 @@ const PageDetails = () => {
     setEditingTodoText("");
   };
   
-  
   const handleAddTodoItem = async (block) => {
     const title = prompt('Введите текст задачи:');
     if (!title) return;
@@ -653,25 +650,21 @@ const PageDetails = () => {
       const formData = new FormData();
       formData.append('data', newData);
   
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
   
-      // Локально обновим
-      setBlocks(
-        blocks.map((b) =>
-          b.id === block.id
-            ? { ...b, todo_block: { ...b.todo_block, data: newData } }
-            : b
-        )
+      // Обновляем блоки рекурсивно, включая вложенные
+      setBlocks((prevBlocks) =>
+        updateNestedBlockData(prevBlocks, response.data)
       );
     } catch (err) {
       console.error('Ошибка добавления пункта todo:', err);
       setError('Не удалось добавить пункт todo.');
     }
   };
-
+  
   const handleEnterKeyTodoItem = async (e, block, index) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -680,42 +673,38 @@ const PageDetails = () => {
       console.log(`Enter id ${index}`);
   
       try {
-        const todoArray = JSON.parse(block.todo_block.data || "[]");
+        const todoArray = JSON.parse(block.todo_block.data || '[]');
   
         if (todoArray[index]) {
           todoArray[index].text = editingTodoText.trim();
         }
   
-        const newItem = { text: "", done: false };
+        // Создаем новый элемент
+        const newItem = { text: '', done: false };
         todoArray.splice(index + 1, 0, newItem);
   
         const updatedData = JSON.stringify(todoArray);
         const formData = new FormData();
-        formData.append("data", updatedData);
-
-        await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+        formData.append('data', updatedData);
+  
+        const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
           params: { page: pageId },
         });
   
+        // Обновляем блоки рекурсивно, включая вложенные
         setBlocks((prevBlocks) =>
-          prevBlocks.map((b) =>
-            b.id === block.id
-              ? {
-                  ...b,
-                  todo_block: { ...b.todo_block, data: updatedData },
-                }
-              : b
-          )
+          updateNestedBlockData(prevBlocks, response.data)
         );
   
+        // Обновляем индексы редактируемых элементов
         setEditingTodoBlockId(block.id);
         setEditingTodoIndex(index + 1);
-        setEditingTodoText("");
+        setEditingTodoText('');
   
       } catch (err) {
         console.error(`Error in handleEnterKeyTodoItem for block id ${block.id}:`, err);
-        setError("Не удалось создать новый элемент списка");
+        setError('Не удалось создать новый элемент списка');
       } finally {
         // Сбрасываем флаг
         setTimeout(() => {
@@ -725,9 +714,8 @@ const PageDetails = () => {
     }
   };
   
-  
   const handleDeleteTodoItem = async (block, index) => {
-    setIsDeleting(true); 
+    setIsDeleting(true);
     const todoArray = JSON.parse(block.todo_block.data || "[]");
   
     const deletedItemText = todoArray[index].text;
@@ -739,38 +727,32 @@ const PageDetails = () => {
     formData.append("data", newData);
   
     try {
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         params: { page: pageId },
       });
   
-      setBlocks(prevBlocks =>
-        prevBlocks.map(b =>
-          b.id === block.id
-            ? {
-                ...b,
-                todo_block: { ...b.todo_block, data: newData },
-              }
-            : b
-        )
+      // Обновляем состояние блоков с вложенными, если они есть
+      setBlocks(prevBlocks => 
+        updateNestedBlockData(prevBlocks, response.data)
       );
   
-      console.log(`delete id ${index} `);
+      console.log(`Deleted item: ${deletedItemText}`);
     } catch (err) {
       console.error("Ошибка при удалении элемента:", err);
       setError("Не удалось удалить элемент списка");
     }
   
+    // Обновляем состояние для редактируемого элемента, если нужно
     if (index < todoArray.length) {
       setEditingTodoBlockId(block.id);
       setEditingTodoIndex(index);
       setEditingTodoText(todoArray[index]?.text || "");
     }
   
-    setIsDeleting(false); 
+    setIsDeleting(false);
   };
   
-
   const handleStartEditingTodoTitle = (block) => {
     setEditingTodoTitleBlockId(block.id);
     setNewTodoTitle(block.todo_block.title || 'title');
@@ -782,30 +764,28 @@ const PageDetails = () => {
       setError('Заголовок не может быть пустым.');
       return;
     }
-
+  
     if (updatedTitle === block.todo_block.title) {
       setEditingTodoTitleBlockId(null);
       return;
     }
-
+  
     try {
-      const updatedTodoBlock = { ...block.todo_block, title: updatedTitle };
+      // Формируем данные для обновления
       const formData = new FormData();
-      formData.append('todo_block', JSON.stringify(updatedTodoBlock));
-
-      await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
+      formData.append('title', updatedTitle); // Отправляем только изменённый title
+  
+      // Отправляем PATCH-запрос с заголовком
+      const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: block.page },
       });
-
-      setBlocks(
-        blocks.map((b) =>
-          b.id === block.id
-            ? { ...b, todo_block: { ...b.todo_block, title: updatedTitle } }
-            : b
-        )
+  
+      // Обновляем блоки локально с новым title, включая вложенные блоки
+      setBlocks((prevBlocks) => 
+        updateNestedBlockData(prevBlocks, response.data)
       );
-
+  
       setEditingTodoTitleBlockId(null);
       setError('');
     } catch (err) {
@@ -813,7 +793,7 @@ const PageDetails = () => {
       setError('Не удалось обновить заголовок.');
     }
   };
-
+  
   const handleEnterKeyTodoTitle = async (e, block) => {
     if (e.key === 'Enter') {
       e.preventDefault();

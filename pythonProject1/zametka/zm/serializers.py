@@ -92,7 +92,6 @@ class BlockSerializer(serializers.ModelSerializer):
     calendar_block = CalendarBlockSerializer(read_only=True)
     toggle_block = ToggleBlockSerializer(read_only=True)
     todo_block = ToDoBlockSerializer(read_only=True)
-    # Рекурсивное поле для вложенных блоков
     children = serializers.SerializerMethodField()
 
     class Meta:
