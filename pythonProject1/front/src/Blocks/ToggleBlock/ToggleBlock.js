@@ -1,5 +1,3 @@
-// src/Blocks/ToggleBlock/ToggleBlock.js
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import './ToggleBlock.css';
@@ -25,12 +23,10 @@ const ToggleBlock = ({
   }
 
   const tb = block.toggle_block;
-  const isCollapsed = tb.collapsed;
+  const isCollapsed = tb.collapsed; // Используем состояние collapsed для скрытия блоков
   const blockIsEditing = editingBlockId === block.id;
   const isEditingTitle = editingToggleTitleBlockId === block.id;
-  <div className="block-title">
-    
-  </div>
+
   const titleElement = isEditingTitle ? (
     <input
       type="text"
@@ -66,6 +62,7 @@ const ToggleBlock = ({
     </button>
   );
 
+  // Если collapsed, скрываем дочерние блоки
   if (isCollapsed && !blockIsEditing) {
     return (
       <div className="toggle-header">
@@ -74,7 +71,8 @@ const ToggleBlock = ({
       </div>
     );
   }
-  
+
+  // Рендерим блок с вложенными данными
   if (blockIsEditing) {
     const listContent = toggleData.join('<br>');
 
@@ -119,6 +117,7 @@ const ToggleBlock = ({
     );
   }
 
+  // Рендерим обычные элементы списка
   return (
     <div>
       <div className="toggle-header">

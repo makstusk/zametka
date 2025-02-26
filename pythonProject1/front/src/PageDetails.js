@@ -579,7 +579,6 @@ const PageDetails = () => {
     }
   };
   
-  
   const handleStartEditingTodoItem = (block, index) => {
     setEditingTodoBlockId(block.id);
     setEditingTodoIndex(index);
@@ -907,21 +906,25 @@ const PageDetails = () => {
     return (
       <div className="block-content">
         {content}
+        {/* Проверка на наличие дочерних блоков */}
         {block.children && block.children.length > 0 && (
           <div className="nested-blocks">
-            {block.children.map((child) => (
-              <div
-                key={child.id}
-                className="block-container nested"
-                onContextMenu={(e) => handleContextMenuBlock(child.id, e)}
-              >
-                {renderBlockContent(child)}
-              </div>
-            ))}
+            {block.toggle_block && block.toggle_block.collapsed ? null : (
+              block.children.map((child) => (
+                <div
+                  key={child.id}
+                  className="block-container"
+                  onContextMenu={(e) => handleContextMenuBlock(child.id, e)}
+                >
+                  {renderBlockContent(child)} {/* Рекурсивный рендеринг дочерних блоков */}
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>
     );
+    
   };
   
   
