@@ -965,117 +965,44 @@ const PageDetails = () => {
             border: '1px solid #ccc',
             zIndex: 999,
             padding: '5px',
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 'row',
           }}
           onMouseLeave={closeContextMenu}
         >
-          {contextMenu.targetBlockId ? (
-            <>
-              <div
-                style={{ padding: '5px', cursor: 'pointer' }}
-                onClick={() => handleDeleteBlock(contextMenu.targetBlockId)}
-              >
-                Удалить блок
-              </div>
-              <div className="submenu-title" style={{ padding: '5px', cursor: 'pointer' }}>
-                Добавить дочерний блок &raquo;
-                <div className="submenu">
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('text', contextMenu.targetBlockId)}
-                  >
-                    Текст
-                  </div>
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('image', contextMenu.targetBlockId)}
-                  >
-                    Изображение
-                  </div>
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('list', contextMenu.targetBlockId)}
-                  >
-                    Список
-                  </div>
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('calendar', contextMenu.targetBlockId)}
-                  >
-                    Календарь
-                  </div>
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('toggle', contextMenu.targetBlockId)}
-                  >
-                    Toggle
-                  </div>
-                  <div
-                    className="context-menu-item"
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={() => handleCreateBlock('todo', contextMenu.targetBlockId)}
-                  >
-                    ToDo
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="submenu-title" style={{ padding: '5px', cursor: 'pointer' }}>
-              Создать блок &raquo;
-              <div className="submenu">
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('text')}
-                >
-                  Текст
-                </div>
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('image')}
-                >
-                  Изображение
-                </div>
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('list')}
-                >
-                  Список
-                </div>
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('calendar')}
-                >
-                  Календарь
-                </div>
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('toggle')}
-                >
-                  Toggle
-                </div>
-                <div
-                  className="context-menu-item"
-                  style={{ padding: '5px', cursor: 'pointer' }}
-                  onClick={() => handleCreateBlock('todo')}
-                >
-                  ToDo
-                </div>
-              </div>
-            </div>
-          )}
+          {contextMenu.targetBlockId && (
+        <div
+          className="context-menu-item"
+          onClick={() => handleDeleteBlock(contextMenu.targetBlockId)}
+        >
+          удалить
         </div>
       )}
+      <div
+          className="context-menu-item"
+        >
+          создать
+        </div>
+
+      <div className="submenu-title">
+        <div className="select-block-type">
+          <select
+            className="block-type-select"
+            onChange={(e) => handleCreateBlock(e.target.value, contextMenu.targetBlockId)}
+          >
+            <option value="text">Текст</option>
+            <option value="image">Изображение</option>
+            <option value="list">Список</option>
+            <option value="calendar">Календарь</option>
+            <option value="toggle">Toggle</option>
+            <option value="todo">ToDo</option>
+          </select>
+        </div>
+      </div>
     </div>
+  )}
+</div>
   );
   
 };
