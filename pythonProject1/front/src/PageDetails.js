@@ -43,6 +43,8 @@ const PageDetails = () => {
     targetBlockId: null,
   });
   const menuRef = useRef(null);
+  const [isAddBlockMenuVisible, setIsAddBlockMenuVisible] = useState(false);
+  const [hoveredBlockId, setHoveredBlockId] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -919,20 +921,30 @@ const PageDetails = () => {
         {content}
         {/* Проверка на наличие дочерних блоков */}
         {block.children && block.children.length > 0 && (
-          <div className="nested-blocks">
-            {block.toggle_block && block.toggle_block.collapsed ? null : (
-              block.children.map((child) => (
-                <div
-                  key={child.id}
-                  className="block-container"
-                  onContextMenu={(e) => handleContextMenuBlock(child.id, e)}
-                >
-                  {renderBlockContent(child)} {/* Рекурсивный рендеринг дочерних блоков */}
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        <div className="nested-blocks">
+          {block.toggle_block && block.toggle_block.collapsed ? null : (
+            block.children.map((child) => (
+              <div
+                key={child.id}
+                className="block-container nested"
+                onContextMenu={(e) => handleContextMenuBlock(child.id, e)}
+                onMouseEnter={() => setHoveredBlockId(child.id)}
+                onMouseLeave={() => setHoveredBlockId(null)}
+              >
+                {renderBlockContent(child)}
+                {hoveredBlockId === child.id && (
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDeleteBlock(child.id)}
+                  >
+                    X
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
       </div>
     );
     
@@ -956,15 +968,57 @@ const PageDetails = () => {
         onDelete={handleDeletePage}
       />
   
-      {blocks.map((block) => (
-        <div
-          className="block-container"
-          key={block.id}
-          onContextMenu={(e) => handleContextMenuBlock(block.id, e)}
+  {blocks.map((block) => (
+    <div
+      className="block-container"
+      key={block.id}
+      onContextMenu={(e) => handleContextMenuBlock(block.id, e)}
+      onMouseEnter={() => setHoveredBlockId(block.id)}
+      onMouseLeave={() => setHoveredBlockId(null)}
+    >
+      {renderBlockContent(block)}
+      {hoveredBlockId === block.id && (
+        <button
+          className="delete-button"
+          onClick={() => handleDeleteBlock(block.id)}
         >
-          {renderBlockContent(block)}
+          X
+        </button>
+      )}
+    </div>
+  ))}
+
+      <div className="add-block-container" style={{ textAlign: 'left', marginTop: '20px' }}>
+      <button onClick={() => setIsAddBlockMenuVisible((prev) => !prev)}>+</button>
+      {isAddBlockMenuVisible && (
+        <div className="submenu-title" style={{ marginTop: '10px' }}>
+          <div className="select-block-type">
+            <select
+              className="block-type-select"
+              defaultValue=""
+              onChange={(e) => {
+                const type = e.target.value;
+                if (type !== "") {
+                  handleCreateBlock(type);
+                  setIsAddBlockMenuVisible(false);
+                  e.target.value = "";
+                }
+              }}
+            >
+              <option value="" disabled>
+                тип блока
+              </option>
+              <option value="text">Текст</option>
+              <option value="image">Изображение</option>
+              <option value="list">Список</option>
+              <option value="calendar">Календарь</option>
+              <option value="toggle">Toggle</option>
+              <option value="todo">ToDo</option>
+            </select>
+          </div>
         </div>
-      ))}
+      )}
+    </div>
   
       {contextMenu.visible && (
         <div
@@ -990,18 +1044,22 @@ const PageDetails = () => {
           удалить
         </div>
       )}
-      <div
-          className="context-menu-item"
-        >
-          создать
-        </div>
-
       <div className="submenu-title">
         <div className="select-block-type">
           <select
             className="block-type-select"
-            onChange={(e) => handleCreateBlock(e.target.value, contextMenu.targetBlockId)}
+            defaultValue=""
+            onChange={(e) => {
+              const type = e.target.value;
+              if (type !== "") {
+                handleCreateBlock(type, contextMenu.targetBlockId);
+                e.target.value = "";
+              }
+            }}
           >
+            <option value="" disabled>
+              создать
+            </option>
             <option value="text">Текст</option>
             <option value="image">Изображение</option>
             <option value="list">Список</option>

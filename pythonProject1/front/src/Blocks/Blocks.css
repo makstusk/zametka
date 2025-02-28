@@ -131,3 +131,20 @@
 .delete-page-button:hover {
     background-color: #c82333;
 }
+.delete-button {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(128, 128, 128, 0.6); /* серый с прозрачностью */
+    color: #fff;
+    border: none;
+    border-radius: 5px; /* квадратная кнопка */
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    display: block;
+  }
+  
+  .block-container:hover .delete-button {
+    display: block; /* Показываем при наведении на контейнер */
+  }
