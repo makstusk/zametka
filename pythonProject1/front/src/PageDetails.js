@@ -42,6 +42,17 @@ const PageDetails = () => {
     y: 0,
     targetBlockId: null,
   });
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (contextMenu.visible && menuRef.current && !menuRef.current.contains(e.target)) {
+        closeContextMenu();
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenu.visible]);
 
   useEffect(() => {
     if (page) {
@@ -957,6 +968,7 @@ const PageDetails = () => {
   
       {contextMenu.visible && (
         <div
+          ref={menuRef}
           style={{
             position: 'absolute',
             top: contextMenu.y,
@@ -969,7 +981,6 @@ const PageDetails = () => {
             flexDirection: 'row',
             gap: 'row',
           }}
-          onMouseLeave={closeContextMenu}
         >
           {contextMenu.targetBlockId && (
         <div
