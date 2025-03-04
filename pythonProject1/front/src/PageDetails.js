@@ -989,7 +989,7 @@ const PageDetails = () => {
   ))}
 
       <div className="add-block-container" style={{ textAlign: 'left', marginTop: '20px' }}>
-      <button onClick={() => setIsAddBlockMenuVisible((prev) => !prev)}>+</button>
+      <button className='delete-page-button' onClick={() => setIsAddBlockMenuVisible((prev) => !prev)}>+</button>
       {isAddBlockMenuVisible && (
         <div className="submenu-title" style={{ marginTop: '10px' }}>
           <div className="select-block-type">

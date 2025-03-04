@@ -1,3 +1,8 @@
+import json
+import logging
+from datetime import datetime
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, Workspace, Page, Block,ToggleBlock, ToDoBlock, TextBlock, ImageBlock, ListBlock, Database, DatabaseRecord, CalendarBlock
@@ -264,3 +269,44 @@ class LogoutView(APIView):
             return Response({"message": "Вы успешно вышли из системы"}, status=204)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+logger = logging.getLogger(__name__)
+
+class UpcomingCalendarEventsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        now = timezone.now()  # Используем timezone.now() для получения timezone-aware даты
+        upcoming_events = []
+        calendar_blocks = CalendarBlock.objects.filter(block__page__workspace__members=request.user)
+        for calendar_block in calendar_blocks:
+            try:
+                events = json.loads(calendar_block.events)
+                logger.debug(f"CalendarBlock {calendar_block.id} events: {events}")
+                for index, event in enumerate(events):
+                    event_start_str = event.get('start')
+                    event_end_str = event.get('end')
+                    if not event_start_str or not event_end_str:
+                        continue
+                    event_start = parse_datetime(event_start_str)
+                    event_end = parse_datetime(event_end_str)
+                    # Если полученные даты offset-naive, можно сделать их timezone-aware:
+                    if event_start is not None and event_start.tzinfo is None:
+                        event_start = timezone.make_aware(event_start)
+                    if event_end is not None and event_end.tzinfo is None:
+                        event_end = timezone.make_aware(event_end)
+                    # Фильтруем события, которые ещё не закончились
+                    if event_end and event_end >= now:
+                        event_id = event.get('id', f"{calendar_block.id}_{index}")
+                        upcoming_events.append({
+                            'id': event_id,
+                            'title': event.get('title', 'Без названия'),
+                            'start': event_start_str,
+                            'end': event_end_str,
+                        })
+            except Exception as e:
+                logger.error(f"Ошибка обработки CalendarBlock {calendar_block.id}: {e}")
+                continue
+        upcoming_events.sort(key=lambda event: parse_datetime(event['start']) or now)
+        logger.debug(f"Returning upcoming events: {upcoming_events}")
+        return Response(upcoming_events, status=status.HTTP_200_OK)

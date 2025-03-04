@@ -17,7 +17,8 @@ from zm.views import (
     DatabaseRecordViewSet,
     ProfileViewSet,
     RegisterView,
-    CurrentUserProfileView
+    CurrentUserProfileView,
+    UpcomingCalendarEventsView
 )
 
 # Initialize DefaultRouter
@@ -39,6 +40,7 @@ urlpatterns = [
     path('api/profile/upload-avatar/', ProfileViewSet.as_view({'post': 'upload_avatar'}), name='upload-avatar'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Эндпоинт для получения токена
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Эндпоинт для обновления токена
+    path('api/calendar-events/upcoming/', UpcomingCalendarEventsView.as_view(), name='upcoming-calendar-events'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
