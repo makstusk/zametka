@@ -37,7 +37,13 @@ class WorkspaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
         fields = ['id', 'name', 'owner', 'members']
-        read_only_fields = ['owner', 'members']
+        read_only_fields = ['owner']
+
+    def validate_members(self, value):
+        request = self.context.get('request')
+        if request and request.user not in value:
+            value.append(request.user)
+        return value
 
 
 class PageSerializer(serializers.ModelSerializer):

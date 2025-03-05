@@ -58,6 +58,7 @@ const Navigation = ({ children }) => {
       try {
         const profileResponse = await axiosInstance.get('profile/');
         setUserInfo({
+          id: profileResponse.data.user.id,
           username: profileResponse.data.user.username,
           avatar: profileResponse.data.avatar,
         });
@@ -129,6 +130,47 @@ const Navigation = ({ children }) => {
     e.preventDefault();
     setIsResizing(true);
   };
+
+  const handleShareWorkspace = async (workspaceId) => {
+    // Запрашиваем у пользователя ID для добавления
+    const userIdStr = window.prompt("Введите ID пользователя, с которым поделиться рабочим пространством:");
+    if (!userIdStr) return;
+    const userId = parseInt(userIdStr, 10);
+    if (isNaN(userId)) {
+      alert("Неверный ID");
+      return;
+    }
+  
+    // Находим рабочее пространство по ID
+    const workspace = workspaces.find(w => w.id === workspaceId);
+    if (!workspace) return;
+  
+    // Получаем текущий список участников, если его нет – создаём новый
+    const currentMembers = workspace.members ? [...workspace.members] : [];
+    
+    // Проверяем, добавлен ли уже этот пользователь
+    if (currentMembers.includes(userId)) {
+      alert("Пользователь уже добавлен.");
+      return;
+    }
+  
+    // Добавляем нового участника
+    currentMembers.push(userId);
+  
+    try {
+      // Выполняем PATCH-запрос для обновления рабочего пространства
+      const response = await axiosInstance.patch(`workspaces/${workspaceId}/`, { members: currentMembers });
+      // Обновляем локальное состояние workspaces
+      setWorkspaces(prevWorkspaces =>
+        prevWorkspaces.map(w => w.id === workspaceId ? response.data : w)
+      );
+      alert("Пользователь успешно добавлен!");
+    } catch (error) {
+      console.error("Ошибка добавления пользователя:", error);
+      alert("Ошибка при добавлении пользователя");
+    }
+  };
+
 
   const handleLogout = async () => {
     try {
@@ -340,7 +382,7 @@ const Navigation = ({ children }) => {
                 </div>
               )}
             </div>
-            <p className="navigation-username">{userInfo.username}</p>
+            <p className="navigation-username" title={`ID: ${userInfo.id}`}>{userInfo.username}</p>
             <button className="navigation-logout" onClick={handleLogout}>
               Выйти
             </button>
@@ -373,9 +415,7 @@ const Navigation = ({ children }) => {
                         {workspace.name}
                       </span>
                       <div className="navigation-context-menu-wrapper">
-                        <button
-                          className="navigation-add-button"
-                        >
+                        <button className="navigation-add-button">
                           <FaPlus />
                         </button>
                         <div className="context-menu">
@@ -385,7 +425,6 @@ const Navigation = ({ children }) => {
                           >
                             rename
                           </div>
-                          
                           <div
                             className="context-menu-item"
                             onClick={() => handleCreateNewPage(workspace.id)}
@@ -397,6 +436,13 @@ const Navigation = ({ children }) => {
                             onClick={() => handleDeleteWorkspace(workspace.id)}
                           >
                             delete
+                          </div>
+                          {/* Новая опция "share" для добавления пользователя */}
+                          <div
+                            className="context-menu-item"
+                            onClick={() => handleShareWorkspace(workspace.id)}
+                          >
+                            share
                           </div>
                         </div>
                       </div>

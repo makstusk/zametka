@@ -36,6 +36,13 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         workspace = serializer.save(owner=self.request.user)
         workspace.members.add(self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        workspace = self.get_object()
+        if workspace.owner != request.user:
+            return Response({'detail': 'Только владелец может изменять доступ к рабочему пространству.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
 class WorkspacePageList(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -244,7 +251,6 @@ class RegisterView(APIView):
 
         return Response({'message': 'Пользователь и профиль успешно созданы'}, status=status.HTTP_201_CREATED)
 
-
 class CurrentUserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -255,7 +261,6 @@ class CurrentUserProfileView(APIView):
             serializer = ProfileSerializer(profile, context={'request': request})
             return Response(serializer.data)
         return Response({'error': 'Профиль не найден'}, status=404)
-
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
