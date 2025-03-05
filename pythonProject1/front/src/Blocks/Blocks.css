@@ -8,7 +8,7 @@
     margin: 10px 0; 
     padding: 3px; 
     border-radius: 2px; 
-    border-left: 3px solid #141414;
+    border-left: 1px solid #818181;
     transition: box-shadow 0.2s ease, transform 0.2s ease; 
 }
 
@@ -117,34 +117,86 @@
     font-weight: bold;
 }
 
-.delete-page-button {
-    margin-left: 10px;
-    background-color: #dc3545;
+.delete-button {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
     color: #fff;
+    border: none;
+    border-radius: 5px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.2s ease;
+    font-size: 1em;
+  }
+  
+  .block-container:hover .delete-button {
+    display: block; 
+  }
+  .delete-button:hover {
+    background-color: #a0a0a0;
+  }
+  .delete-page-button {
+    margin-left: 10px;
+    color: #ffffff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     padding: 5px 10px;
     font-size: 1em;
+    transition: background-color 0.2s ease;
 }
 
-.delete-page-button:hover {
-    background-color: #c82333;
+.add-block-container {
+  display: inline-flex;           /* Чтобы кнопка и меню были в одной строке */
+  align-items: center;            /* Вертикальное выравнивание */
+  background-color: #d4d4d4;      /* Фон кнопки/блока */
+  border-radius: 8px;            /* Скруглённые углы */
+  width: 40px;                    /* Начальная ширина (квадрат) */
+  height: 40px;                   /* Высота совпадает с шириной */
+  transition: width 0.3s ease;    /* Плавное расширение */
+  overflow: hidden;               /* Прячем содержимое, пока блок узкий */
+  position: relative;
+  vertical-align: middle;         /* Если нужно красиво вписать в текст */
 }
-.delete-button {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background-color: rgba(128, 128, 128, 0.6); /* серый с прозрачностью */
-    color: #fff;
-    border: none;
-    border-radius: 5px; /* квадратная кнопка */
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-    display: block;
-  }
-  
-  .block-container:hover .delete-button {
-    display: block; /* Показываем при наведении на контейнер */
-  }
+
+/* При наведении на блок расширяемся */
+.add-block-container:hover {
+  width: 180px;
+}
+
+.add-block-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-block-container:hover .submenu-title {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.select-block-type {
+  width: 100%;
+}
+.select-block-type select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #000;
+}

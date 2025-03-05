@@ -982,43 +982,38 @@ const PageDetails = () => {
           className="delete-button"
           onClick={() => handleDeleteBlock(block.id)}
         >
-          X
+          ✕
         </button>
       )}
     </div>
   ))}
 
-      <div className="add-block-container" style={{ textAlign: 'left', marginTop: '20px' }}>
-      <button className='delete-page-button' onClick={() => setIsAddBlockMenuVisible((prev) => !prev)}>+</button>
-      {isAddBlockMenuVisible && (
-        <div className="submenu-title" style={{ marginTop: '10px' }}>
-          <div className="select-block-type">
-            <select
-              className="block-type-select"
-              defaultValue=""
-              onChange={(e) => {
-                const type = e.target.value;
-                if (type !== "") {
-                  handleCreateBlock(type);
-                  setIsAddBlockMenuVisible(false);
-                  e.target.value = "";
-                }
-              }}
-            >
-              <option value="" disabled>
-                тип блока
-              </option>
-              <option value="text">Текст</option>
-              <option value="image">Изображение</option>
-              <option value="list">Список</option>
-              <option value="calendar">Календарь</option>
-              <option value="toggle">Toggle</option>
-              <option value="todo">ToDo</option>
-            </select>
-          </div>
+    <div className="add-block-container">
+      <button className="add-block-button">+</button>
+      <div className="submenu-title">
+        <div className="select-block-type">
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const type = e.target.value;
+              if (type !== "") {
+                handleCreateBlock(type);
+                e.target.value = "";
+              }
+            }}
+          >
+            <option value="" disabled>тип блока</option>
+            <option value="text">Текст</option>
+            <option value="image">Изображение</option>
+            <option value="list">Список</option>
+            <option value="calendar">Календарь</option>
+            <option value="toggle">Toggle</option>
+            <option value="todo">ToDo</option>
+          </select>
         </div>
-      )}
+      </div>
     </div>
+
   
       {contextMenu.visible && (
         <div

@@ -15,11 +15,25 @@
 .editable-title-display:focus {
     outline: none;
     border: none;
+    cursor: pointer;
+    flex: 1;
+    font-size: 1.5em;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .editable-title-input:focus {
     outline: none;
     border: none;
+    cursor: pointer;
+    flex: 1;
+    font-size: 1.5em;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .editable-title-input {
@@ -32,7 +46,6 @@
 
 .delete-page-button {
     margin-left: 10px;
-    background-color: #bdbdbd;
     color: #ffffff;
     border: none;
     border-radius: 4px;

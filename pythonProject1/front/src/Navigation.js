@@ -416,7 +416,7 @@ const Navigation = ({ children }) => {
                       </span>
                       <div className="navigation-context-menu-wrapper">
                         <button className="navigation-add-button">
-                          <FaPlus />
+                          +
                         </button>
                         <div className="context-menu">
                           <div
