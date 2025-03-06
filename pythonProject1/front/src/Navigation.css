@@ -156,35 +156,38 @@
 
 .context-menu {
     position: absolute;
-    bottom: 100%;
-    left: 100%;
+    top: 0;       
+    left: 100%;     
     transform: translateX(-50%);
-    display: flex;
+    display: none;
     flex-direction: row;
-    gap: 10px;
+    gap: 5px; /* Уменьшаем промежуток между элементами */
     background-color: #ffffff;
     border: 1px solid #ccc;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     z-index: 100;
-    display: none;
     border-radius: 4px;
     white-space: nowrap;
-}
-
-.context-menu-item {
-    padding: 10px 15px;
+    padding: 2px; /* Минимальный внутренний отступ */
+  }
+  
+  .context-menu-item {
+    padding: 4px 8px; /* Уменьшенные отступы */
     cursor: pointer;
     transition: background-color 0.2s ease;
     border-radius: 4px;
-}
-
-.context-menu-item:hover {
+    font-size: 0.9em;  /* Размер текста чуть меньше базового */
+    line-height: 1;    /* Компактное межстрочное расстояние */
+  }
+  
+  .context-menu-item:hover {
     background-color: #f0f0f0;
-}
-
-.navigation-context-menu-wrapper:hover .context-menu {
+  }
+  
+  .navigation-context-menu-wrapper:hover .context-menu {
     display: flex;
-}
+  }
+  
 
 .navigation-pages-list {
     list-style: none;
