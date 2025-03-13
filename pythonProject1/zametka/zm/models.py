@@ -89,16 +89,18 @@ class ToggleBlock(models.Model):
         Block, on_delete=models.CASCADE, related_name='toggle_block'
     )
     collapsed = models.BooleanField(default=False)
-    title = models.CharField(max_length=100, blank=True, default='')
+    title = models.CharField(max_length=100, blank=True, default='', null=True)
     data = models.TextField(default='[]')
 
     def __str__(self):
         return f"ToggleBlock(title='{self.title}', collapsed={self.collapsed})"
+
+
 class ToDoBlock(models.Model):
     block = models.OneToOneField(
         Block, on_delete=models.CASCADE, related_name='todo_block'
     )
-    title = models.CharField(max_length=100, blank=True, default='')
+    title = models.CharField(max_length=100, blank=True, default='', null=True)
     data = models.TextField(default='[]')  # JSON-строка: [{ text, done }, ...]
 
     def __str__(self):

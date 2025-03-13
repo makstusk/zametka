@@ -21,7 +21,7 @@ const TextBlock = ({
     .replace(/\r/g, '')
     .replace(/\n/g, '<br>');
 
-  const placeholderText = 'ㅤ';
+  const placeholderText = '';
 
   if (isEditing) {
     return (

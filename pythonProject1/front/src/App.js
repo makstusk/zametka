@@ -6,7 +6,7 @@ import Login from './Login';
 import Register from './Register';
 import Profile from './Profile';
 import WorkspacePage from './WorkspacePage';
-import PageDetails from './PageDetails';
+import PageDetails from './PageDetails/PageDetails';
 import './global.css';
 
 const App = () => {

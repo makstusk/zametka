@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../axiosInstance';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import TextBlock from './Blocks/TextBlock/TextBlock';
-import ImageBlock from './Blocks/ImageBlock/ImageBlock';
-import ListBlock from './Blocks/ListBlock/ListBlock';
-import CalendarBlock from './Blocks/CalendarBlock/CalendarBlock';
-import ToggleBlock from './Blocks/ToggleBlock/ToggleBlock';
-import TodoBlock from './Blocks/TodoBlock/TodoBlock';
-import Title from './Blocks/Title/Title';
-import './Blocks/Blocks.css';
-import './contexmenu.css'
-import './Navigation.css'
+import TextBlock from '../Blocks/TextBlock/TextBlock';
+import ImageBlock from '../Blocks/ImageBlock/ImageBlock';
+import ListBlock from '../Blocks/ListBlock/ListBlock';
+import CalendarBlock from '../Blocks/CalendarBlock/CalendarBlock';
+import ToggleBlock from '../Blocks/ToggleBlock/ToggleBlock';
+import TodoBlock from '../Blocks/TodoBlock/TodoBlock';
+import Title from '../Blocks/Title/Title';
+import '../Blocks/Blocks.css';
+import '../contexmenu.css'
+import '../Navigation.css'
 
 
 
@@ -148,11 +148,11 @@ const PageDetails = () => {
           if (parentId) formData.append('parent', parentId);
           formData.append('block_type', 'image');
           formData.append('image', file);
-    
+  
           const response = await axiosInstance.post(`/blocks/`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-    
+  
           if (parentId) {
             setBlocks((prev) => updateNestedBlock(prev, parentId, response.data));
           } else {
@@ -167,14 +167,14 @@ const PageDetails = () => {
       input.click();
       return;
     }
-    
+  
     (async () => {
       try {
         const formData = new FormData();
         formData.append('page', pageId);
         if (parentId) formData.append('parent', parentId);
         formData.append('block_type', type);
-    
+  
         if (type === 'text') {
           formData.append('content', '');
         } else if (type === 'list') {
@@ -182,21 +182,19 @@ const PageDetails = () => {
         } else if (type === 'calendar') {
           formData.append('events', JSON.stringify([]));
         } else if (type === 'toggle') {
-          const title = prompt("Введите заголовок Toggle-блока:") || "";
-          formData.append('title', title);
+          formData.append('title', '');
           formData.append('collapsed', 'false');
           formData.append('data', '[]');
         } else if (type === 'todo') {
-          const title = prompt("Введите заголовок ToDo-блока:") || "";
-          const initialItems = JSON.stringify([{ text: title, done: false }]);
-          formData.append('title', title);
-          formData.append('data', initialItems);
+          formData.append('title', '');
+          // Отправляем данные с одним пустым чекбоксом
+          formData.append('data', JSON.stringify([{ text: "", done: false }]));
         }
-    
+  
         const response = await axiosInstance.post(`/blocks/`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-    
+  
         if (parentId) {
           setBlocks((prev) => updateNestedBlock(prev, parentId, response.data));
         } else {
@@ -388,8 +386,6 @@ const PageDetails = () => {
     setEditingBlockId(null);
   };
   
-  
-  
   const handleKeyDownTextBlock = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -463,22 +459,21 @@ const PageDetails = () => {
   
   const handleBlurToggleTitle = async (e, block) => {
     const updatedTitle = e.target.value.trim();
-    if (!updatedTitle) {
-      setError('Заголовок не может быть пустым.');
-      return;
-    }
+  
     if (updatedTitle === block.toggle_block.title) {
       setEditingToggleTitleBlockId(null);
       return;
     }
+  
     try {
       const formData = new FormData();
-      formData.append('title', updatedTitle);
+      formData.append('title', updatedTitle); // Отправляем новое значение title (в том числе пустое)
   
       const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { page: pageId },
       });
+  
       setBlocks((prev) => updateNestedBlockData(prev, response.data));
       setEditingToggleTitleBlockId(null);
       setError('');
@@ -487,6 +482,7 @@ const PageDetails = () => {
       setError('Не удалось обновить заголовок.');
     }
   };
+  
   
   const handleEnterKeyToggleTitle = (e, block) => {
     if (e.key === 'Enter') {
@@ -772,11 +768,8 @@ const PageDetails = () => {
 
   const handleBlurTodoTitle = async (e, block) => {
     const updatedTitle = e.target.value.trim();
-    if (!updatedTitle) {
-      setError('Заголовок не может быть пустым.');
-      return;
-    }
   
+    // Если значение не изменилось, просто завершаем редактирование
     if (updatedTitle === block.todo_block.title) {
       setEditingTodoTitleBlockId(null);
       return;
@@ -785,7 +778,7 @@ const PageDetails = () => {
     try {
       // Формируем данные для обновления
       const formData = new FormData();
-      formData.append('title', updatedTitle); // Отправляем только изменённый title
+      formData.append('title', updatedTitle); // Отправляем новое значение title (в том числе пустое)
   
       // Отправляем PATCH-запрос с заголовком
       const response = await axiosInstance.patch(`/blocks/${block.id}/`, formData, {
@@ -794,7 +787,7 @@ const PageDetails = () => {
       });
   
       // Обновляем блоки локально с новым title, включая вложенные блоки
-      setBlocks((prevBlocks) => 
+      setBlocks((prevBlocks) =>
         updateNestedBlockData(prevBlocks, response.data)
       );
   

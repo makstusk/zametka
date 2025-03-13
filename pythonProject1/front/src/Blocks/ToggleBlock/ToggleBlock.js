@@ -23,7 +23,7 @@ const ToggleBlock = ({
   }
 
   const tb = block.toggle_block;
-  const isCollapsed = tb.collapsed; // Используем состояние collapsed для скрытия блоков
+  const isCollapsed = tb.collapsed;
   const blockIsEditing = editingBlockId === block.id;
   const isEditingTitle = editingToggleTitleBlockId === block.id;
 
@@ -42,7 +42,7 @@ const ToggleBlock = ({
       className="block-title"
       onClick={() => handleStartEditingToggleTitle(block)}
     >
-      {tb.title || 'Toggle'}
+      {tb.title || '\u00A0'}
     </div>
   );
 
@@ -62,7 +62,6 @@ const ToggleBlock = ({
     </button>
   );
 
-  // Если collapsed, скрываем дочерние блоки
   if (isCollapsed && !blockIsEditing) {
     return (
       <div className="toggle-header">
@@ -72,7 +71,6 @@ const ToggleBlock = ({
     );
   }
 
-  // Рендерим блок с вложенными данными
   if (blockIsEditing) {
     const listContent = toggleData.join('<br>');
 
@@ -111,7 +109,7 @@ const ToggleBlock = ({
           className="block-content"
           onClick={() => handleStartEditingToggle(block)}
         >
-          Здесь пока ничего нет
+
         </div>
       </div>
     );

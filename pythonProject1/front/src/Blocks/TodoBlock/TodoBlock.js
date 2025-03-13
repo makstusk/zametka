@@ -26,7 +26,7 @@ const TodoBlock = ({
     return <p className="block-error">Нет данных todo_block</p>;
   }
 
-  const todoTitle = block.todo_block.title || 'Todo';
+  const todoTitle = block.todo_block.title;
   let todoList = [];
   try {
     todoList = JSON.parse(block.todo_block.data);
@@ -57,7 +57,7 @@ const TodoBlock = ({
               if (e.key === 'Enter') handleStartEditingTodoTitle(block);
             }}
           >
-            {todoTitle}
+            {todoTitle || '\u00A0'}
           </span>
         )}
       </div>
