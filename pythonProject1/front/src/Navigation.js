@@ -474,23 +474,20 @@ const Navigation = ({ children }) => {
         </button>
         {/* Отображение ошибок */}
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div className="calendar-events-section">
-          <div className="block-title">Ближайшие события</div>
-          <ul className="calendar-events-list">
-            {calendarEvents.length > 0 ? (
-              calendarEvents.map((event) => (
+        {calendarEvents.length > 0 && (
+          <div className="calendar-events-section">
+            <ul className="calendar-events-list">
+              {calendarEvents.map((event) => (
                 <li key={event.id} className="calendar-event-item">
                   <div className="event-title">{event.title}</div>
                   <div className="event-date">
                     {new Date(event.start).toLocaleDateString()}
                   </div>
                 </li>
-              ))
-            ) : (
-              <li className="calendar-event-item">Нет событий</li>
-            )}
-          </ul>
-        </div>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       
 
